@@ -61,11 +61,12 @@ fi
 ENTERPRISE=0
 STANDARD=0
 EXPRESS=0
+SLIM=""
 VERSION="12.2.0.1"
 SKIPMD5=0
 DOCKEROPS=""
 
-while getopts "hesxiv:o:" optname; do
+while getopts "hesxiSv:o:" optname; do
   case "$optname" in
     "h")
       usage
@@ -84,6 +85,9 @@ while getopts "hesxiv:o:" optname; do
       ;;
     "v")
       VERSION="$OPTARG"
+      ;;
+    "S")
+      SLIM="-slim"
       ;;
     "o")
       DOCKEROPS="$OPTARG"
@@ -115,16 +119,16 @@ else
 fi
 
 # Oracle Database Image Name
-IMAGE_NAME="oracle/database:$VERSION-$EDITION"
+IMAGE_NAME="oracle/database:$VERSION-$EDITION$SLIM"
 
 # Go into version folder
 cd $VERSION
 
-if [ ! "$SKIPMD5" -eq 1 ]; then
-  checksumPackages
-else
-  echo "Ignored MD5 checksum."
-fi
+#if [ ! "$SKIPMD5" -eq 1 ]; then
+#  checksumPackages
+#else
+#  echo "Ignored MD5 checksum."
+#fi
 echo "=========================="
 echo "DOCKER info:"
 docker info
@@ -159,7 +163,7 @@ echo "Building image '$IMAGE_NAME' ..."
 
 # BUILD THE IMAGE (replace all environment variables)
 BUILD_START=$(date '+%s')
-docker build --force-rm=true --no-cache=true $DOCKEROPS $PROXY_SETTINGS -t $IMAGE_NAME -f Dockerfile.$EDITION . || {
+docker build --force-rm=true --no-cache=true $DOCKEROPS $PROXY_SETTINGS -t $IMAGE_NAME -f Dockerfile.$EDITION$SLIM . || {
   echo ""
   echo "ERROR: Oracle Database Docker Image was NOT successfully created."
   echo "ERROR: Check the output and correct any reported problems with the docker build operation."
@@ -173,7 +177,7 @@ BUILD_ELAPSED=`expr $BUILD_END - $BUILD_START`
 echo ""
 
 cat << EOF
-  Oracle Database Docker Image for '$EDITION' version $VERSION is ready to be extended: 
+  Oracle Database Docker Image for '$EDITION$SLIM' version $VERSION is ready to be extended: 
     
     --> $IMAGE_NAME
 

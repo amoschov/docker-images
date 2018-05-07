@@ -4,20 +4,19 @@
 #
 # ORACLE DOCKERFILES PROJECT
 # --------------------------
-# This is the Dockerfile for Oracle Database 12c Release 1 Enterprise Edition
-# 
+# This is the Dockerfile for Oracle Database 12c Release 2 Enterprise Edition
+#
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
-# (1) linuxamd64_12102_database_1of2.zip
-#     linuxamd64_12102_database_2of2.zip
-#     Download Oracle Database 12c Release 1 Enterprise Edition for Linux x64
+# (1) linuxx64_12201_database.zip
+#     Download Oracle Database 12c Release 12 Enterprise Edition for Linux x64
 #     from http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 #
 # HOW TO BUILD THIS IMAGE
 # -----------------------
 # Put all downloaded files in the same directory as this Dockerfile
-# Run: 
-#      $ docker build -t oracle/database:12.1.0.2-ee . 
+# Run:
+#      $ docker build -t oracle/database:12.2.0.1-ee .
 #
 # Pull base image
 # ---------------
@@ -30,13 +29,11 @@ MAINTAINER Gerald Venzl <gerald.venzl@oracle.com>
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
 ENV ORACLE_BASE=/opt/oracle \
-    ORACLE_HOME=/opt/oracle/product/12.1.0.2/dbhome_1 \
-    INSTALL_FILE_1="linuxamd64_12102_database_1of2.zip" \
-    INSTALL_FILE_2="linuxamd64_12102_database_2of2.zip" \
+    ORACLE_HOME=/opt/oracle/product/12.2.0.1/dbhome_1 \
+    INSTALL_FILE_1="linuxx64_12201_database.zip" \
     INSTALL_RSP="db_inst.rsp" \
     CONFIG_RSP="dbca.rsp.tmpl" \
     PWD_FILE="setPassword.sh" \
-    PERL_INSTALL_FILE="installPerl.sh" \
     RUN_FILE="runOracle.sh" \
     START_FILE="startDB.sh" \
     CREATE_DB_FILE="createDB.sh" \
@@ -54,13 +51,13 @@ ENV INSTALL_DIR=$ORACLE_BASE/install \
 
 # Copy binaries
 # -------------
-COPY $INSTALL_RSP $PERL_INSTALL_FILE $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_DB_BINARIES_FILE $INSTALL_DIR/
+COPY $INSTALL_RSP $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_DB_BINARIES_FILE $INSTALL_DIR/
 COPY $RUN_FILE $START_FILE $CREATE_DB_FILE $CONFIG_RSP $PWD_FILE $CHECK_DB_FILE $USER_SCRIPTS_FILE $ORACLE_BASE/
 
 RUN yum-config-manager --enable ol7_optional_latest &&\
     yum -y install wget bsdtar less vim && \
     curl -o /usr/local/bin/gosu -SL 'https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64' && chmod +x /usr/local/bin/gosu && \
-    wget -qO- http://192.168.1.70/~alexander/linuxamd64_12102_database.zip | bsdtar -xvf- -C $INSTALL_DIR && \
+    wget -qO- http://192.168.1.70/~alexander/linuxx64_12201_database.zip | bsdtar -xvf- -C $INSTALL_DIR && \
     chmod ug+x -R $INSTALL_DIR/database/* && \
     chmod ug+x $INSTALL_DIR/*.sh && \
     sync && \
@@ -70,8 +67,25 @@ RUN yum-config-manager --enable ol7_optional_latest &&\
     $ORACLE_BASE/oraInventory/orainstRoot.sh && \
     $ORACLE_HOME/root.sh && \
     rm -rf $INSTALL_DIR && \
-    yum clean all && rm -rf /var/cache/yum
-
+    yum clean all && rm -rf /var/cache/yum && \
+    rm -rf $ORACLE_HOME/inventory && \
+    rm -rf $ORACLE_HOME/md && \
+    rm -rf $ORACLE_HOME/demo && \
+    rm -rf $ORACLE_HOME/nls/demo && \
+    rm -rf $ORACLE_HOME/odbc && \
+    rm -rf $ORACLE_HOME/jdbc && \
+    rm -rf $ORACLE_HOME/rdbms/jlib && \
+    rm -rf $ORACLE_HOME/rdbms/public && \
+    rm -rf $ORACLE_HOME/rdbms/demo && \
+    rm -rf $ORACLE_HOME/suptools && \
+    rm -rf $ORACLE_HOME/javavm && \
+    rm -rf $ORACLE_HOME/lib/libosbws.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_avx512_mic.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_mc3.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_avx.so && \
+    rm -rf $ORACLE_HOME/lib/libra.so && \
+    rm -rf $ORACLE_HOME/lib/libopc.so
+    
 USER oracle
 WORKDIR /home/oracle
 
@@ -79,6 +93,6 @@ VOLUME ["$ORACLE_BASE/oradata"]
 EXPOSE 1521 5500
 HEALTHCHECK --interval=1m --start-period=5m \
    CMD "$ORACLE_BASE/$CHECK_DB_FILE" >/dev/null || exit 1
-    
-# Define default command to start Oracle Database. 
+
+# Define default command to start Oracle Database.
 CMD exec $ORACLE_BASE/$RUN_FILE

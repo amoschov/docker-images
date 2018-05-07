@@ -70,7 +70,24 @@ RUN yum-config-manager --enable ol7_optional_latest &&\
     $ORACLE_BASE/oraInventory/orainstRoot.sh && \
     $ORACLE_HOME/root.sh && \
     rm -rf $INSTALL_DIR && \
-    yum clean all && rm -rf /var/cache/yum
+    yum clean all && rm -rf /var/cache/yum && \
+    rm -rf $ORACLE_HOME/inventory && \
+    rm -rf $ORACLE_HOME/md && \
+    rm -rf $ORACLE_HOME/demo && \
+    rm -rf $ORACLE_HOME/nls/demo && \
+    rm -rf $ORACLE_HOME/odbc && \
+    rm -rf $ORACLE_HOME/jdbc && \
+    rm -rf $ORACLE_HOME/rdbms/jlib && \
+    rm -rf $ORACLE_HOME/rdbms/public && \
+    rm -rf $ORACLE_HOME/rdbms/demo && \
+    rm -rf $ORACLE_HOME/suptools && \
+    rm -rf $ORACLE_HOME/javavm && \
+    rm -rf $ORACLE_HOME/lib/libosbws.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_avx512_mic.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_mc3.so && \
+    rm -rf $ORACLE_HOME/lib/libmkl_avx.so && \
+    rm -rf $ORACLE_HOME/lib/libra.so && \
+    rm -rf $ORACLE_HOME/lib/libopc.so
 
 USER oracle
 WORKDIR /home/oracle

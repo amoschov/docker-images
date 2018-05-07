@@ -6,9 +6,9 @@
 # Since: December, 2016
 # Author: gerald.venzl@oracle.com
 # Description: Sets up the unix environment for DB installation.
-# 
+#
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-# 
+#
 
 EDITION=$1
 
@@ -49,8 +49,6 @@ sed -i -e "s|###ORACLE_HOME###|$ORACLE_HOME|g" $INSTALL_DIR/$INSTALL_RSP
 
 # Install Oracle binaries
 cd $INSTALL_DIR       && \
-unzip $INSTALL_FILE_1 && \
-rm $INSTALL_FILE_1    && \
 $INSTALL_DIR/database/runInstaller -silent -force -waitforcompletion -responsefile $INSTALL_DIR/$INSTALL_RSP -ignoresysprereqs -ignoreprereq && \
 cd $HOME
 

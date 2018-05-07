@@ -5,7 +5,7 @@
 # ORACLE DOCKERFILES PROJECT
 # --------------------------
 # This is the Dockerfile for Oracle Database 12c Release 2 Enterprise Edition
-# 
+#
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
 # (1) linuxx64_12201_database.zip
@@ -15,8 +15,8 @@
 # HOW TO BUILD THIS IMAGE
 # -----------------------
 # Put all downloaded files in the same directory as this Dockerfile
-# Run: 
-#      $ docker build -t oracle/database:12.2.0.1-ee . 
+# Run:
+#      $ docker build -t oracle/database:12.2.0.1-ee .
 #
 # Pull base image
 # ---------------
@@ -51,22 +51,24 @@ ENV INSTALL_DIR=$ORACLE_BASE/install \
 
 # Copy binaries
 # -------------
-COPY $INSTALL_FILE_1 $INSTALL_RSP $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_DB_BINARIES_FILE $INSTALL_DIR/
+COPY $INSTALL_RSP $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_DB_BINARIES_FILE $INSTALL_DIR/
 COPY $RUN_FILE $START_FILE $CREATE_DB_FILE $CONFIG_RSP $PWD_FILE $CHECK_DB_FILE $USER_SCRIPTS_FILE $ORACLE_BASE/
 
-RUN chmod ug+x $INSTALL_DIR/*.sh && \
+RUN yum-config-manager --enable ol7_optional_latest &&\
+    yum -y install wget bsdtar less vim && \
+    curl -o /usr/local/bin/gosu -SL 'https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64' && chmod +x /usr/local/bin/gosu && \
+    wget -qO- http://192.168.1.70/~alexander/linuxx64_12201_database.zip | bsdtar -xvf- -C $INSTALL_DIR && \
+    chmod ug+x -R $INSTALL_DIR/database/* && \
+    chmod ug+x $INSTALL_DIR/*.sh && \
     sync && \
     $INSTALL_DIR/$CHECK_SPACE_FILE && \
-    $INSTALL_DIR/$SETUP_LINUX_FILE
-
-# Install DB software binaries
-USER oracle
-RUN $INSTALL_DIR/$INSTALL_DB_BINARIES_FILE EE
-
-USER root
-RUN $ORACLE_BASE/oraInventory/orainstRoot.sh && \
+    $INSTALL_DIR/$SETUP_LINUX_FILE && \
+    gosu oracle $INSTALL_DIR/$INSTALL_DB_BINARIES_FILE EE && \
+    $ORACLE_BASE/oraInventory/orainstRoot.sh && \
     $ORACLE_HOME/root.sh && \
-    rm -rf $INSTALL_DIR
+    rm -rf $INSTALL_DIR && \
+    yum clean all && rm -rf /var/cache/yum
+
 
 USER oracle
 WORKDIR /home/oracle
@@ -76,5 +78,5 @@ EXPOSE 1521 5500
 HEALTHCHECK --interval=1m --start-period=5m \
    CMD "$ORACLE_BASE/$CHECK_DB_FILE" >/dev/null || exit 1
 
-# Define default command to start Oracle Database. 
+# Define default command to start Oracle Database.
 CMD exec $ORACLE_BASE/$RUN_FILE
